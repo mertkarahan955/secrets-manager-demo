@@ -22,7 +22,8 @@ AWS Secrets Manager'ın ECS Fargate üzerinde nasıl kullanılacağını göster
 │   └── deploy.yml   # GitHub Actions CI/CD
 ├── setup-backend.sh # Backend kurulum (tek seferlik)
 ├── deploy.sh        # Ana deployment
-├── cleanup.sh       # Temizlik
+├── cleanup.sh       # Application temizlik (backend korunur)
+├── cleanup-backend.sh # Tam temizlik (GERİ ALINAMAZ)
 ├── .gitignore       # Git ignore (terraform.tfvars dahil)
 └── README.md        # Bu dosya
 ```
@@ -78,11 +79,11 @@ curl http://your-alb-url/health
 # Ana endpoint
 curl http://your-alb-url/
 
-# Test secret
-curl http://your-alb-url/secret/test-secret
+# Demo test secret
+curl http://your-alb-url/secret/demo-test-secret
 
 # API keys secret
-curl http://your-alb-url/secret/api-keys
+curl http://your-alb-url/secret/secret-api-keys
 ```
 
 ## GitHub Actions CI/CD
@@ -101,17 +102,40 @@ curl http://your-alb-url/secret/api-keys
 - `GET /health` - Health check endpoint
 - `GET /secret/{secret_name}` - Secrets Manager'dan secret getir
 
-## Temizlik
+## Maliyet Yönetimi
 
-### Application resources (güvenli):
+### Application Resources Temizlik (Güvenli)
 ```bash
 ./cleanup.sh
 ```
+**Siler:**
+- ECS Fargate cluster ve service
+- Application Load Balancer
+- VPC ve networking
+- Secrets Manager secrets
+- ECR repository ve images
+- IAM roles ve policies
 
-### Backend infrastructure (DİKKAT - GERİ ALINAMAZ):
+**Korur:**
+- S3 bucket (Terraform state)
+- DynamoDB (state lock)
+- KMS key (backend encryption)
+
+### Tekrar Deployment
+Backend korunduğu için:
+```bash
+# Manuel deployment
+./deploy.sh
+
+# Veya GitHub'a push yap (otomatik)
+git push origin main
+```
+
+### Tam Temizlik (DİKKAT - GERİ ALINAMAZ)
 ```bash
 ./cleanup-backend.sh
 ```
+**Tüm kaynakları siler, tfstate kaybolur!**
 
 ## Teknik Detaylar
 
@@ -121,4 +145,5 @@ curl http://your-alb-url/secret/api-keys
 - **Encryption**: KMS (both state and secrets)
 - **Networking**: VPC, public subnets, ALB
 - **Monitoring**: CloudWatch logs
-- **CI/CD**: GitHub Actions with OIDC
+- **CI/CD**: GitHub Actions with automatic image updates
+- **State Management**: S3 backend with DynamoDB locking
