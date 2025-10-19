@@ -1,8 +1,3 @@
-output "terraform_state_bucket_name" {
-  description = "Terraform state S3 bucket name"
-  value       = aws_s3_bucket.terraform_state.bucket
-}
-
 output "ecr_repository_url" {
   description = "ECR repository URL"
   value       = aws_ecr_repository.app.repository_url

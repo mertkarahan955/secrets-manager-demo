@@ -103,8 +103,14 @@ curl http://your-alb-url/secret/api-keys
 
 ## Temizlik
 
+### Application resources (güvenli):
 ```bash
 ./cleanup.sh
+```
+
+### Backend infrastructure (DİKKAT - GERİ ALINAMAZ):
+```bash
+./cleanup-backend.sh
 ```
 
 ## Teknik Detaylar
