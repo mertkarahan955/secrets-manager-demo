@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import boto3
 from botocore.exceptions import ClientError
-import redis
+import valkey
 import json
 import os
 import time
@@ -11,9 +11,9 @@ app = FastAPI(title="Secrets Manager PoC with ElastiCache")
 # Create Secrets Manager client
 secrets_client = boto3.client('secretsmanager', region_name=os.getenv('AWS_REGION', 'eu-west-1'))
 
-# Create Redis client
+# Create Valkey client
 try:
-    redis_client = redis.Redis(
+    valkey_client = valkey.Valkey(
         host=os.getenv('CACHE_ENDPOINT', 'localhost'),
         port=int(os.getenv('CACHE_PORT', 6379)),
         ssl=True,
@@ -23,11 +23,11 @@ try:
         socket_timeout=5
     )
     # Test connection
-    redis_client.ping()
+    valkey_client.ping()
     cache_available = True
 except Exception as e:
     print(f"Cache connection failed: {e}")
-    redis_client = None
+    valkey_client = None
     cache_available = False
 
 @app.get("/")
@@ -46,9 +46,9 @@ async def root():
 @app.get("/health")
 async def health_check():
     cache_status = "disconnected"
-    if cache_available and redis_client:
+    if cache_available and valkey_client:
         try:
-            redis_client.ping()
+            valkey_client.ping()
             cache_status = "connected"
         except:
             cache_status = "disconnected"
