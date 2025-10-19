@@ -140,29 +140,6 @@ async def get_secret(secret_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@app.get("/secret/{secret_name}/cached")
-async def get_cached_secret(secret_name: str):
-    """Get secret from cache only"""
-    if not cache_available or not valkey_client:
-        raise HTTPException(status_code=503, detail="Cache is not available")
-    
-    start_time = time.time()
-    
-    try:
-        cached_value = valkey_client.get(f"secret:{secret_name}")
-        if not cached_value:
-            raise HTTPException(status_code=404, detail=f"Secret '{secret_name}' not found in cache")
-        
-        cache_time = time.time() - start_time
-        return {
-            "secret_name": secret_name,
-            "secret_value": json.loads(cached_value),
-            "source": "cache",
-            "response_time_ms": round(cache_time * 1000, 2)
-        }
-    except valkey.ValkeyError as e:
-        raise HTTPException(status_code=503, detail=f"Cache error: {str(e)}")
-
 @app.get("/cache/keys")
 async def list_cached_keys():
     """List all cached secret keys"""
@@ -170,7 +147,20 @@ async def list_cached_keys():
         raise HTTPException(status_code=503, detail="Cache is not available")
     
     try:
-        keys = valkey_client.keys("secret:*")
+        cursor = 0
+        keys = []
+        
+        while True:
+            cursor, partial_keys = valkey_client.scan(
+                cursor=cursor, 
+                match="secret:*", 
+                count=100
+            )
+            keys.extend(partial_keys)
+            
+            if cursor == 0: 
+                break
+        
         return {
             "cached_keys": [key.replace("secret:", "") for key in keys],
             "total_count": len(keys)
