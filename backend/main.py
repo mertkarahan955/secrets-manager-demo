@@ -16,6 +16,8 @@ try:
     redis_client = redis.Redis(
         host=os.getenv('CACHE_ENDPOINT', 'localhost'),
         port=int(os.getenv('CACHE_PORT', 6379)),
+        ssl=True,
+        ssl_cert_reqs=None,
         decode_responses=True,
         socket_connect_timeout=5,
         socket_timeout=5
