@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
-    bucket         = "secrets-manager-poc-tfstate-e040b8a3"
+    bucket         = "secrets-manager-poc-tfstate-3e002c35"
     key            = "terraform.tfstate"
     region         = "eu-west-1"
     encrypt        = true
-    kms_key_id     = "c7001033-7a90-4503-8dd8-7f4e96a69d68"
+    kms_key_id     = "alias/terraform-state-key"
     dynamodb_table = "terraform-state-lock"
   }
 }
