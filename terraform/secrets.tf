@@ -15,9 +15,10 @@ resource "aws_kms_alias" "secrets_manager" {
 
 # Test Secret (KMS encrypted)
 resource "aws_secretsmanager_secret" "test_secret" {
-  name        = "test-secret"
-  description = "Test secret for PoC demonstration"
-  kms_key_id  = aws_kms_key.secrets_manager.arn
+  name                    = "test-secret"
+  description             = "Test secret for PoC demonstration"
+  kms_key_id              = aws_kms_key.secrets_manager.arn
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "test_secret" {
@@ -32,9 +33,10 @@ resource "aws_secretsmanager_secret_version" "test_secret" {
 
 # API Keys Secret (KMS encrypted, from variables)
 resource "aws_secretsmanager_secret" "api_keys" {
-  name        = "api-keys"
-  description = "API keys for external services"
-  kms_key_id  = aws_kms_key.secrets_manager.arn
+  name                    = "api-keys"
+  description             = "API keys for external services"
+  kms_key_id              = aws_kms_key.secrets_manager.arn
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "api_keys" {
