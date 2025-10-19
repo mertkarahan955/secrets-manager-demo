@@ -12,7 +12,7 @@ secrets_client = boto3.client('secretsmanager', region_name=os.getenv('AWS_REGIO
 @app.get("/")
 async def root():
     return {
-        "message": "Secrets Manager PoC is working efficiently.",
+        "message": "Secrets Manager PoC is working as expected.",
         "endpoints": {
             "/health": "Health check endpoint",
             "/secret/{secret_name}": "Get secret by name from AWS Secrets Manager"
