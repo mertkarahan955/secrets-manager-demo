@@ -145,6 +145,14 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "DEPLOYMENT_TIMESTAMP"
           value = timestamp()
+        },
+        {
+          name  = "CACHE_ENDPOINT"
+          value = aws_elasticache_serverless_cache.valkey.endpoint[0].address
+        },
+        {
+          name  = "CACHE_PORT"
+          value = tostring(aws_elasticache_serverless_cache.valkey.endpoint[0].port)
         }
       ]
 
@@ -161,7 +169,7 @@ resource "aws_ecs_task_definition" "app" {
     }
   ])
 
-  depends_on = [null_resource.docker_build]
+  depends_on = [null_resource.docker_build, aws_elasticache_serverless_cache.valkey]
 }
 
 # ECS Service
