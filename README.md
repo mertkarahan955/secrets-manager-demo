@@ -1,12 +1,12 @@
 # Secrets Manager PoC
 
-AWS Secrets Manager'ın ECS Fargate üzerinde nasıl kullanılacağını gösteren enterprise-grade güvenlik ile PoC projesi.
+A PoC project demonstrating how to use AWS Secrets Manager on ECS Fargate with enterprise-grade security.
 
-## Proje Yapısı
+## Project Structure
 
 ```
-├── backend/           # FastAPI uygulaması
-│   ├── main.py       # Ana uygulama kodu
+├── backend/           # FastAPI application
+│   ├── main.py       # Main application code
 │   ├── Dockerfile    # Container image (AMD64 platform)
 │   └── requirements.txt
 ├── terraform/        # Infrastructure as Code
@@ -16,30 +16,30 @@ AWS Secrets Manager'ın ECS Fargate üzerinde nasıl kullanılacağını göster
 │   ├── secrets.tf   # Secrets Manager (KMS encrypted)
 │   ├── backend-setup.tf # S3 backend, DynamoDB, KMS
 │   ├── github-oidc.tf   # GitHub Actions OIDC provider
-│   ├── variables.tf # Terraform değişkenleri
-│   └── outputs.tf   # Çıktılar
+│   ├── variables.tf # Terraform variables
+│   └── outputs.tf   # Outputs
 ├── .github/workflows/
 │   └── deploy.yml   # GitHub Actions CI/CD
-├── setup-backend.sh # Backend kurulum (tek seferlik)
-├── deploy.sh        # Ana deployment
-├── cleanup.sh       # Application temizlik (backend korunur)
-├── cleanup-backend.sh # Tam temizlik (GERİ ALINAMAZ)
-├── .gitignore       # Git ignore (terraform.tfvars dahil)
-└── README.md        # Bu dosya
+├── setup-backend.sh # Backend setup (one-time)
+├── deploy.sh        # Main deployment
+├── cleanup.sh       # Application cleanup (backend preserved)
+├── cleanup-backend.sh # Full cleanup (IRREVERSIBLE)
+├── .gitignore       # Git ignore (terraform.tfvars included)
+└── README.md        # This file
 ```
 
-## Güvenlik Özellikleri
+## Security Features
 
-- **S3 Backend**: Terraform state KMS ile encrypted
-- **Secrets Manager**: KMS ile encrypted secrets
+- **S3 Backend**: Terraform state encrypted with KMS
+- **Secrets Manager**: KMS encrypted secrets
 - **GitHub OIDC**: Keyless authentication (no AWS keys)
 - **IAM**: Minimum required permissions
-- **Network**: Security groups ile controlled access
+- **Network**: Controlled access with security groups
 - **Container**: AMD64 platform, non-root user
 
-## Kurulum
+## Setup
 
-### 1. Önkoşullar
+### 1. Prerequisites
 ```bash
 # AWS CLI configured
 aws configure list
@@ -51,32 +51,32 @@ docker --version
 terraform --version
 ```
 
-### 2. Secrets dosyasını hazırla
+### 2. Prepare secrets file
 ```bash
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
-# terraform.tfvars'ı gerçek değerlerle doldur
+# Fill terraform.tfvars with real values
 ```
 
-### 3. Backend kurulumu (tek seferlik)
+### 3. Backend setup (one-time)
 ```bash
 ./setup-backend.sh
 ```
 
-### 4. Ana deployment
+### 4. Main deployment
 ```bash
 ./deploy.sh
 ```
 
-## Test
+## Testing
 
-Deployment tamamlandıktan sonra:
+After deployment completes:
 
 ```bash
 # Health check
 curl http://your-alb-url/health
 
-# Ana endpoint
+# Main endpoint
 curl http://your-alb-url/
 
 # Demo test secret
@@ -88,56 +88,56 @@ curl http://your-alb-url/secret/secret-api-keys
 
 ## GitHub Actions CI/CD
 
-1. **GitHub Secrets'ı ayarla:**
+1. **Set up GitHub Secrets:**
    - `AWS_ACCESS_KEY_ID`: AWS Access Key ID
    - `AWS_SECRET_ACCESS_KEY`: AWS Secret Access Key
-   - `API_KEY`: API key değeri
-   - `API_KEY_SECRET`: API secret değeri
+   - `API_KEY`: API key value
+   - `API_KEY_SECRET`: API secret value
 
-2. **Push to main branch** otomatik deploy tetikler
+2. **Push to main branch** triggers automatic deployment
 
 ## API Endpoints
 
-- `GET /` - Ana endpoint, mevcut endpoint'leri listeler
+- `GET /` - Main endpoint, lists available endpoints
 - `GET /health` - Health check endpoint
-- `GET /secret/{secret_name}` - Secrets Manager'dan secret getir
+- `GET /secret/{secret_name}` - Get secret from Secrets Manager
 
-## Maliyet Yönetimi
+## Cost Management
 
-### Application Resources Temizlik (Güvenli)
+### Application Resources Cleanup (Safe)
 ```bash
 ./cleanup.sh
 ```
-**Siler:**
-- ECS Fargate cluster ve service
+**Deletes:**
+- ECS Fargate cluster and service
 - Application Load Balancer
-- VPC ve networking
+- VPC and networking
 - Secrets Manager secrets
-- ECR repository ve images
-- IAM roles ve policies
+- ECR repository and images
+- IAM roles and policies
 
-**Korur:**
+**Preserves:**
 - S3 bucket (Terraform state)
 - DynamoDB (state lock)
 - KMS key (backend encryption)
 
-### Tekrar Deployment
-Backend korunduğu için:
+### Re-deployment
+Since backend is preserved:
 ```bash
-# Manuel deployment
+# Manual deployment
 ./deploy.sh
 
-# Veya GitHub'a push yap (otomatik)
+# Or push to GitHub (automatic)
 git push origin main
 ```
 
-### Tam Temizlik (DİKKAT - GERİ ALINAMAZ)
+### Full Cleanup (WARNING - IRREVERSIBLE)
 ```bash
 ./cleanup-backend.sh
 ```
-**Tüm kaynakları siler, tfstate kaybolur!**
+**Deletes all resources, tfstate is lost!**
 
-## Teknik Detaylar
+## Technical Details
 
 - **Platform**: ECS Fargate
 - **Runtime**: Python 3.11 (FastAPI + Uvicorn)

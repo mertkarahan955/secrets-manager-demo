@@ -18,7 +18,7 @@ output "test_endpoints" {
   value = {
     health_check = "http://${aws_lb.app.dns_name}/health"
     root         = "http://${aws_lb.app.dns_name}/"
-    test_secret  = "http://${aws_lb.app.dns_name}/secret/test-secret"
-    api_keys     = "http://${aws_lb.app.dns_name}/secret/api-keys"
+    test_secret  = "http://${aws_lb.app.dns_name}/secret/demo-test-secret"
+    api_keys     = "http://${aws_lb.app.dns_name}/secret/secret-api-keys"
   }
 }
