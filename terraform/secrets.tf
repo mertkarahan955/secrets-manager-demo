@@ -14,7 +14,7 @@ resource "aws_kms_alias" "secrets_manager" {
 }
 
 # Test Secret (KMS encrypted)
-resource "aws_secretsmanager_secret" "decmo_test_secret" {
+resource "aws_secretsmanager_secret" "demo_test_secret" {
   name                    = "demo-test-secret"
   description             = "Test secret for PoC demonstration"
   kms_key_id              = aws_kms_key.secrets_manager.arn

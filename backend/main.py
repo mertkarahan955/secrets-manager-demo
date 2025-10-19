@@ -12,10 +12,10 @@ secrets_client = boto3.client('secretsmanager', region_name=os.getenv('AWS_REGIO
 @app.get("/")
 async def root():
     return {
-        "message": "Secrets Manager PoC çalışıyor",
+        "message": "Secrets Manager PoC is working!",
         "endpoints": {
             "/health": "Health check endpoint",
-            "/secret/{secret_name}": "Secret'ı getir"
+            "/secret/{secret_name}": "Get secret by name from AWS Secrets Manager"
         }
     }
 
@@ -26,7 +26,7 @@ async def health_check():
 @app.get("/secret/{secret_name}")
 async def get_secret(secret_name: str):
     """
-    Secrets Manager'dan belirtilen secret'ı getirir
+    Get the specified secret from Secrets Manager
     """
     try:
         response = secrets_client.get_secret_value(SecretId=secret_name)
