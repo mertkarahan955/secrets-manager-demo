@@ -1,0 +1,5 @@
+# Copy this file to terraform.tfvars and fill with real values
+# DO NOT commit terraform.tfvars to git!
+
+api_key        = "your-real-api-key-here"
+api_key_secret = "your-real-api-secret-here"
