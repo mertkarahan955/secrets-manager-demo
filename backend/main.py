@@ -65,9 +65,9 @@ async def get_secret(secret_name: str):
     start_time = time.time()
     
     # Check cache first (if available)
-    if cache_available and redis_client:
+    if cache_available and valkey_client:
         try:
-            cached_value = redis_client.get(f"secret:{secret_name}")
+            cached_value = valkey_client.get(f"secret:{secret_name}")
             if cached_value:
                 cache_time = time.time() - start_time
                 return {
@@ -89,9 +89,9 @@ async def get_secret(secret_name: str):
                 secret_dict = json.loads(secret)
                 
                 # Cache the result (TTL: 5 minutes) if cache is available
-                if cache_available and redis_client:
+                if cache_available and valkey_client:
                     try:
-                        redis_client.setex(f"secret:{secret_name}", 300, json.dumps(secret_dict))
+                        valkey_client.setex(f"secret:{secret_name}", 300, json.dumps(secret_dict))
                     except Exception as e:
                         print(f"Cache write error: {e}")
                 
@@ -106,9 +106,9 @@ async def get_secret(secret_name: str):
                 }
             except json.JSONDecodeError:
                 # Plain text secret
-                if cache_available and redis_client:
+                if cache_available and valkey_client:
                     try:
-                        redis_client.setex(f"secret:{secret_name}", 300, secret)
+                        valkey_client.setex(f"secret:{secret_name}", 300, secret)
                     except Exception as e:
                         print(f"Cache write error: {e}")
                 
@@ -143,13 +143,13 @@ async def get_secret(secret_name: str):
 @app.get("/secret/{secret_name}/cached")
 async def get_cached_secret(secret_name: str):
     """Get secret from cache only"""
-    if not cache_available or not redis_client:
+    if not cache_available or not valkey_client:
         raise HTTPException(status_code=503, detail="Cache is not available")
     
     start_time = time.time()
     
     try:
-        cached_value = redis_client.get(f"secret:{secret_name}")
+        cached_value = valkey_client.get(f"secret:{secret_name}")
         if not cached_value:
             raise HTTPException(status_code=404, detail=f"Secret '{secret_name}' not found in cache")
         
@@ -160,37 +160,37 @@ async def get_cached_secret(secret_name: str):
             "source": "cache",
             "response_time_ms": round(cache_time * 1000, 2)
         }
-    except redis.RedisError as e:
+    except valkey.ValkeyError as e:
         raise HTTPException(status_code=503, detail=f"Cache error: {str(e)}")
 
 @app.get("/cache/keys")
 async def list_cached_keys():
     """List all cached secret keys"""
-    if not cache_available or not redis_client:
+    if not cache_available or not valkey_client:
         raise HTTPException(status_code=503, detail="Cache is not available")
     
     try:
-        keys = redis_client.keys("secret:*")
+        keys = valkey_client.keys("secret:*")
         return {
             "cached_keys": [key.replace("secret:", "") for key in keys],
             "total_count": len(keys)
         }
-    except redis.RedisError as e:
+    except valkey.ValkeyError as e:
         raise HTTPException(status_code=503, detail=f"Cache error: {str(e)}")
 
 @app.delete("/cache/{key}")
 async def delete_cached_key(key: str):
     """Delete a key from cache"""
-    if not cache_available or not redis_client:
+    if not cache_available or not valkey_client:
         raise HTTPException(status_code=503, detail="Cache is not available")
     
     try:
-        deleted = redis_client.delete(f"secret:{key}")
+        deleted = valkey_client.delete(f"secret:{key}")
         if deleted:
             return {"message": f"Key '{key}' deleted from cache"}
         else:
             raise HTTPException(status_code=404, detail=f"Key '{key}' not found in cache")
-    except redis.RedisError as e:
+    except valkey.ValkeyError as e:
         raise HTTPException(status_code=503, detail=f"Cache error: {str(e)}")
 
 if __name__ == "__main__":
